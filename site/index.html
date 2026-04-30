@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DocFrame is a Python framework for turning PDFs, DOCX, CSV, Excel, JPG, and PNG files into AI-ready document chunks.">
+  <title>DocFrame - Document Processing Framework</title>
+  <link rel="icon" href="assets/docframe-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="DocFrame home">
+      <img src="assets/docframe-logo.svg" alt="DocFrame">
+    </a>
+    <nav class="nav" aria-label="Primary navigation">
+      <a href="#features">Features</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#install">Install</a>
+      <a href="#status">Status</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <canvas id="doc-scene" aria-hidden="true"></canvas>
+      <div class="hero-copy">
+        <p class="eyebrow">Python document intelligence framework</p>
+        <h1 id="hero-title">DocFrame</h1>
+        <p class="hero-subtitle">
+          Normalize PDFs, DOCX files, CSVs, Excel workbooks, JPGs, and PNGs into
+          typed chunks your AI and automation systems can trust.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#install">Start building</a>
+          <a class="button secondary" href="#pipeline">See the pipeline</a>
+        </div>
+      </div>
+      <div class="hero-terminal" aria-label="DocFrame command preview">
+        <div class="terminal-bar">
+          <span></span><span></span><span></span>
+        </div>
+        <pre><code>$ docframe process ./inbox --recursive --out normalized.json
+✓ scanned 128 documents
+✓ extracted 2,417 chunks
+✓ wrote normalized.json</code></pre>
+      </div>
+    </section>
+
+    <section class="format-strip" aria-label="Supported formats">
+      <span>PDF</span>
+      <span>DOCX</span>
+      <span>CSV</span>
+      <span>XLSX</span>
+      <span>JPG</span>
+      <span>PNG</span>
+    </section>
+
+    <section id="features" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Framework primitives</p>
+        <h2>One model for every document workflow</h2>
+      </div>
+      <div class="feature-grid">
+        <article class="feature">
+          <h3>Adapters</h3>
+          <p>Each file family has a parser behind a shared interface, so new formats can be plugged in without changing downstream code.</p>
+        </article>
+        <article class="feature">
+          <h3>Typed Chunks</h3>
+          <p>Text, table, image, and metadata chunks are emitted as Pydantic models ready for validation, storage, and AI pipelines.</p>
+        </article>
+        <article class="feature">
+          <h3>CLI First</h3>
+          <p>Use <code>docframe process</code> from the terminal, batch folders, or wire the Python API into your own services.</p>
+        </article>
+        <article class="feature">
+          <h3>Pipeline API</h3>
+          <p>Compose post-processing steps for enrichment, routing, indexing, extraction, redaction, and review workflows.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="pipeline" class="section split">
+      <div>
+        <p class="eyebrow">Pipeline</p>
+        <h2>From file chaos to normalized document intelligence</h2>
+        <p class="body-copy">
+          DocFrame gives teams a reliable boundary between untrusted documents
+          and the systems that consume them. Feed it a file, get back structured
+          metadata and chunks with a stable schema.
+        </p>
+      </div>
+      <div class="pipeline-visual" aria-label="Document processing pipeline">
+        <div class="pipeline-node input">Raw files</div>
+        <div class="pipeline-arrow"></div>
+        <div class="pipeline-node parse">Adapters</div>
+        <div class="pipeline-arrow"></div>
+        <div class="pipeline-node output">AI-ready chunks</div>
+      </div>
+    </section>
+
+    <section id="install" class="section install">
+      <div class="section-heading">
+        <p class="eyebrow">Install and run</p>
+        <h2>Framework-native command line</h2>
+      </div>
+      <div class="code-grid">
+        <div class="code-panel">
+          <h3>Process one file</h3>
+          <pre><code>docframe process contract.pdf --format markdown</code></pre>
+        </div>
+        <div class="code-panel">
+          <h3>Process a folder</h3>
+          <pre><code>docframe process ./inbox --recursive --out normalized.json</code></pre>
+        </div>
+        <div class="code-panel">
+          <h3>Use Python</h3>
+          <pre><code>import docframe as df
+
+framework = df.DocFrame()
+result = framework.process_sync("report.xlsx")</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="status" class="section status">
+      <div>
+        <p class="eyebrow">Launch status</p>
+        <h2>Public alpha, built with a production path</h2>
+      </div>
+      <ul class="status-list">
+        <li>CLI, Python SDK, typed models, adapters, tests, MIT license, and security notes are in place.</li>
+        <li>Before 1.0: CI, fuzz corpus, parser sandboxing, API compatibility policy, and full docs.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>DocFrame</span>
+    <span>Document processing for Python teams.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,11 @@
+<svg width="246" height="64" viewBox="0 0 246 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">DocFrame logo</title>
+  <desc id="desc">A layered document mark forming the letter D beside the DocFrame wordmark.</desc>
+  <rect x="2" y="6" width="52" height="52" rx="12" fill="#101418"/>
+  <path d="M17 17h16c10.493 0 19 6.716 19 15s-8.507 15-19 15H17V17Z" fill="#F4F1E8"/>
+  <path d="M25 24h8c5.523 0 10 3.582 10 8s-4.477 8-10 8h-8V24Z" fill="#101418"/>
+  <path d="M9 14h31c2.761 0 5 2.239 5 5v1H17c-4.418 0-8 3.582-8 8V14Z" fill="#47C2A8"/>
+  <path d="M9 36h28c4.418 0 8-3.582 8-8v17c0 2.761-2.239 5-5 5H14c-2.761 0-5-2.239-5-5v-9Z" fill="#E96D4C"/>
+  <text x="66" y="44" fill="#101418" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="31" font-weight="850" letter-spacing="0">DocFrame</text>
+</svg>
+
