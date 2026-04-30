@@ -361,6 +361,39 @@ code {
   white-space: pre-wrap;
 }
 
+.examples {
+  background: var(--white);
+}
+
+.example-list {
+  display: grid;
+  gap: 14px;
+}
+
+.example-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.42fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 22px;
+  background: #fffaf0;
+}
+
+.example-row p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.example-row pre {
+  border-radius: 8px;
+  background: #111310;
+  color: #dceee9;
+  white-space: pre-wrap;
+}
+
 .status {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(320px, 1fr);
@@ -431,6 +464,7 @@ code {
 
   .feature-grid,
   .code-grid,
+  .example-row,
   .pipeline-visual {
     grid-template-columns: 1fr;
   }
@@ -454,4 +488,3 @@ code {
     flex-direction: column;
   }
 }
-

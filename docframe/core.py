@@ -11,6 +11,7 @@ from typing import TypeAlias
 from .adapters import adapter_registry
 from .models import DocumentResult, ProcessingOptions
 from .registry import AdapterRegistry, DocumentAdapter
+from .utils import build_metadata
 
 PipelineStep: TypeAlias = Callable[[DocumentResult], DocumentResult | Awaitable[DocumentResult]]
 
@@ -70,10 +71,35 @@ class DocFrame:
         result = await asyncio.to_thread(adapter.process, file_path, self.options)
         return await self.pipeline.run(result)
 
-    async def process_many(self, paths: Iterable[str | Path]) -> list[DocumentResult]:
-        """Process many documents concurrently."""
+    async def process_safe(self, path: str | Path) -> DocumentResult:
+        """Process one document and return parser failures as structured errors."""
 
-        return await asyncio.gather(*(self.process(path) for path in paths))
+        file_path = Path(path).expanduser().resolve()
+        try:
+            return await self.process(file_path)
+        except Exception as exc:
+            metadata = build_metadata(file_path)
+            return DocumentResult(
+                document_id=metadata.sha256,
+                metadata=metadata,
+                chunks=[],
+                errors=[f"{type(exc).__name__}: {exc}"],
+            )
+
+    async def process_many(
+        self,
+        paths: Iterable[str | Path],
+        *,
+        continue_on_error: bool = False,
+    ) -> list[DocumentResult]:
+        """Process many documents concurrently.
+
+        Set ``continue_on_error`` for corpus/batch jobs where one malformed file
+        should not fail the whole run.
+        """
+
+        processor = self.process_safe if continue_on_error else self.process
+        return await asyncio.gather(*(processor(path) for path in paths))
 
     def process_sync(self, path: str | Path) -> DocumentResult:
         """Process one document from synchronous Python code."""
@@ -85,4 +111,3 @@ def process_file(path: str | Path, *, options: ProcessingOptions | None = None) 
     """Convenience function for synchronous one-file processing."""
 
     return DocFrame(options=options).process_sync(path)
-

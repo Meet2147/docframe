@@ -30,6 +30,8 @@ print(result.text)
 - `DocumentChunk`: text, table, image, or metadata unit.
 - `Pipeline`: ordered post-processing steps over normalized results.
 - `ProcessingOptions`: extraction limits for large files.
+- `process_many(..., continue_on_error=True)`: safe corpus mode that returns
+  per-file parser errors instead of failing an entire batch.
 
 ## Built-In Adapters
 
@@ -42,4 +44,3 @@ print(result.text)
 Images currently emit metadata and image chunks. OCR is deliberately an
 extension point so DocFrame can support local OCR, cloud OCR, or multimodal AI
 providers without hard-coding one vendor.
-

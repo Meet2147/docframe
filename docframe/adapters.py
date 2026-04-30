@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import logging
 import uuid
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,8 @@ from pypdf import PdfReader
 from .models import DocumentChunk, DocumentResult, ProcessingOptions
 from .registry import AdapterRegistry, DocumentAdapter
 from .utils import build_metadata, split_text
+
+logging.getLogger("pypdf").setLevel(logging.ERROR)
 
 
 def chunk_id() -> str:

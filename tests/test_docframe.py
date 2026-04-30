@@ -115,6 +115,18 @@ class DocFrameTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(payload["metadata"]["document_type"], "csv")
 
+    async def test_process_many_can_return_structured_errors(self) -> None:
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "broken.pdf"
+            path.write_bytes(b"not really a pdf")
+
+            results = await df.DocFrame().process_many([path], continue_on_error=True)
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].metadata.document_type, "pdf")
+        self.assertEqual(results[0].chunks, [])
+        self.assertTrue(results[0].errors)
+
 
 if __name__ == "__main__":
     unittest.main()

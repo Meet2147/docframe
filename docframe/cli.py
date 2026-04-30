@@ -67,7 +67,7 @@ async def process_command(args: argparse.Namespace) -> None:
     )
     framework = DocFrame(options=options)
     paths = collect_paths(Path(args.input), recursive=args.recursive, framework=framework)
-    results = await framework.process_many(paths)
+    results = await framework.process_many(paths, continue_on_error=True)
     rendered = render_results(results, output_format=args.format)
 
     if args.out:
@@ -100,4 +100,3 @@ def collect_paths(path: Path, *, recursive: bool, framework: DocFrame) -> list[P
 
 if __name__ == "__main__":
     main()
-

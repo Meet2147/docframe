@@ -17,6 +17,7 @@
       <a href="#features">Features</a>
       <a href="#pipeline">Pipeline</a>
       <a href="#install">Install</a>
+      <a href="#examples">Examples</a>
       <a href="#status">Status</a>
     </nav>
   </header>
@@ -41,9 +42,9 @@
           <span></span><span></span><span></span>
         </div>
         <pre><code>$ docframe process ./inbox --recursive --out normalized.json
-✓ scanned 128 documents
-✓ extracted 2,417 chunks
-✓ wrote normalized.json</code></pre>
+ok scanned 128 documents
+ok extracted 2,417 chunks
+ok wrote normalized.json</code></pre>
       </div>
     </section>
 
@@ -124,6 +125,55 @@ result = framework.process_sync("report.xlsx")</code></pre>
       </div>
     </section>
 
+    <section id="examples" class="section examples">
+      <div class="section-heading">
+        <p class="eyebrow">Examples</p>
+        <h2>Copy-ready recipes for real document workflows</h2>
+      </div>
+      <div class="example-list">
+        <article class="example-row">
+          <div>
+            <h3>Inspect one PDF as Markdown</h3>
+            <p>Useful for quick checks before building a full pipeline.</p>
+          </div>
+          <pre><code>docframe process report.pdf --format markdown</code></pre>
+        </article>
+        <article class="example-row">
+          <div>
+            <h3>Normalize a folder into JSON</h3>
+            <p>Batch PDFs, DOCX files, spreadsheets, CSVs, and images into one schema.</p>
+          </div>
+          <pre><code>docframe process ./documents --recursive --out normalized.json</code></pre>
+        </article>
+        <article class="example-row">
+          <div>
+            <h3>Build a Python enrichment pipeline</h3>
+            <p>Add your own extraction, routing, redaction, indexing, or AI steps.</p>
+          </div>
+          <pre><code>import docframe as df
+
+framework = df.DocFrame()
+
+async def tag_large_docs(result):
+    result.metadata.extra["large"] = result.metadata.size_bytes > 5_000_000
+    return result
+
+framework.use(tag_large_docs)
+results = await framework.process_many(paths, continue_on_error=True)</code></pre>
+        </article>
+        <article class="example-row">
+          <div>
+            <h3>Handle malformed files safely</h3>
+            <p>Corpus jobs can keep going and return per-file parser errors.</p>
+          </div>
+          <pre><code>results = await framework.process_many(
+    ["a.pdf", "broken.pdf"],
+    continue_on_error=True,
+)</code></pre>
+        </article>
+      </div>
+    </section>
+
     <section id="status" class="section status">
       <div>
         <p class="eyebrow">Launch status</p>
@@ -144,4 +194,3 @@ result = framework.process_sync("report.xlsx")</code></pre>
   <script src="app.js"></script>
 </body>
 </html>
-

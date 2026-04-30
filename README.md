@@ -56,6 +56,22 @@ framework = df.DocFrame()
 results = await framework.process_many(["contract.pdf", "report.xlsx"])
 ```
 
+Safe corpus processing:
+
+```python
+import docframe as df
+
+framework = df.DocFrame()
+results = await framework.process_many(
+    ["good.pdf", "malformed.pdf"],
+    continue_on_error=True,
+)
+
+for result in results:
+    if result.errors:
+        print(result.metadata.filename, result.errors)
+```
+
 ## Supported Formats
 
 - PDF: text and page metadata via `pypdf`
@@ -102,4 +118,3 @@ python3 -m compileall docframe tests
 ## Website
 
 The static site lives in [site/index.html](site/index.html).
-
