@@ -118,3 +118,34 @@ python3 -m compileall docframe tests
 ## Website
 
 The static site lives in [site/index.html](site/index.html).
+
+Run it locally:
+
+```bash
+python3 -m http.server 8080 -d site
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8080/
+```
+
+## Deploy Static Site On Render
+
+The repository includes a Render Blueprint in [render.yaml](render.yaml). It
+publishes the static site from `site/` as `docframe-site`.
+
+After pushing the repository to GitHub, GitLab, or Bitbucket:
+
+```bash
+git push -u origin main
+```
+
+Then create the Blueprint from the Render Dashboard:
+
+```text
+https://dashboard.render.com/blueprint/new
+```
+
+Connect the repository and Render will use `render.yaml` from the repo root.

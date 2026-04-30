@@ -10,6 +10,7 @@ DocFrame is ready to publish as a public alpha, not as a production-guaranteed
 - Supported formats: PDF, DOCX, CSV, XLSX/XLSM, JPG/JPEG, PNG
 - Pydantic result models and JSON/Markdown/Text output
 - Static landing site
+- Render static-site Blueprint
 - MIT license
 - Security notes
 - Automated tests for core adapters
