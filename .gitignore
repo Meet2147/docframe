@@ -6,10 +6,3 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-
-# Local experiment from earlier exploration; not part of the DocFrame package.
-omniframe/
-example_app.py
-docs/architecture.md
-examples/hello_world.py
-tests/test_framework.py

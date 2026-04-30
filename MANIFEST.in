@@ -6,5 +6,4 @@ include PUBLIC_ALPHA.md
 recursive-include docframe *.py
 prune build
 prune dist
-prune omniframe
 prune tests

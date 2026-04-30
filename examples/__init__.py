@@ -1,2 +1,1 @@
-"""Example OmniFrame applications."""
-
+"""Example DocFrame applications."""
