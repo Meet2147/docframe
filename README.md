@@ -22,6 +22,12 @@ file type.
 
 ## Install
 
+From PyPI:
+
+```bash
+python3 -m pip install docframe-ai
+```
+
 Local development:
 
 ```bash
@@ -34,6 +40,11 @@ Then:
 docframe formats
 docframe process examples/sample.csv --format markdown
 ```
+
+The PyPI distribution is `docframe-ai`; the Python import remains `docframe`.
+See the repository's
+[PyPI publishing guide](https://github.com/Meet2147/docframe/blob/main/docs/pypi_publish.md)
+for the GitHub Trusted Publishing setup.
 
 ## Python API
 

@@ -1,5 +1,5 @@
 [project]
-name = "docframe"
+name = "docframe-ai"
 version = "0.2.0"
 description = "A Python framework for normalizing PDFs, Word files, CSV, Excel, JPG, and PNG into AI-ready document chunks."
 readme = "README.md"
@@ -35,6 +35,11 @@ dev = [
 
 [project.scripts]
 docframe = "docframe.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Meet2147/docframe"
+Source = "https://github.com/Meet2147/docframe"
+Issues = "https://github.com/Meet2147/docframe/issues"
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -5,6 +5,7 @@ include CHANGELOG.md
 include PUBLIC_ALPHA.md
 recursive-include docframe *.py
 recursive-include scripts *.py
+recursive-include docs *.md
 prune build
 prune dist
 prune tests
