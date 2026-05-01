@@ -22,10 +22,9 @@ Publishing, so no PyPI API token is stored in GitHub.
 
 After the pending publisher is created in PyPI:
 
-1. Go to GitHub Actions.
-2. Open the `Publish to PyPI` workflow.
-3. Click `Run workflow`.
-4. Confirm PyPI created `docframe-ai`.
+1. Push a release tag such as `v0.2.0`, or open GitHub Actions and run the
+   `Publish to PyPI` workflow manually.
+2. Confirm PyPI created `docframe-ai`.
 
 After that, normal releases can be published by creating a GitHub release.
 
