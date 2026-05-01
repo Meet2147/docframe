@@ -7,6 +7,7 @@ Run from the repository root:
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 
 import docframe as df
@@ -85,6 +86,26 @@ def print_result(result: df.DocumentResult) -> None:
     print("-" * 60)
 
 
+def print_llm_payload(results: list[df.DocumentResult]) -> None:
+    """Print the simplified LLM-ready output for the recording."""
+
+    payload = df.to_llm_payload(results, max_chars=650)
+    tokens = payload["tokens"]
+
+    print()
+    print("LLM-ready output:")
+    print("-" * 60)
+    print(f"Schema: {payload['schema']}")
+    print(f"Token blocks: {payload['token_count']}")
+    print()
+    print("First token block:")
+    print(tokens[0] if tokens else "No text/table token blocks emitted.")
+    print()
+    print("Payload shape:")
+    print(json.dumps({"schema": payload["schema"], "tokens": ["..."]}, indent=2))
+    print("-" * 60)
+
+
 async def main() -> None:
     """Run the demo."""
 
@@ -112,8 +133,11 @@ async def main() -> None:
     for result in results:
         print_result(result)
 
+    print_llm_payload(results)
+
     print()
-    print("One API. One CLI. Messy documents into typed AI-ready chunks.")
+    print("One API. One CLI. Messy documents into LLM-ready token blocks.")
+    print("CLI: docframe process ./documents --recursive --format llm")
     print("GitHub: https://github.com/Meet2147/docframe")
     print()
 
