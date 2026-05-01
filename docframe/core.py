@@ -99,7 +99,13 @@ class DocFrame:
         """
 
         processor = self.process_safe if continue_on_error else self.process
-        return await asyncio.gather(*(processor(path) for path in paths))
+        semaphore = asyncio.Semaphore(self.options.max_concurrency)
+
+        async def bounded_process(path: str | Path) -> DocumentResult:
+            async with semaphore:
+                return await processor(path)
+
+        return await asyncio.gather(*(bounded_process(path) for path in paths))
 
     def process_sync(self, path: str | Path) -> DocumentResult:
         """Process one document from synchronous Python code."""

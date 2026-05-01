@@ -4,6 +4,7 @@ include SECURITY.md
 include CHANGELOG.md
 include PUBLIC_ALPHA.md
 recursive-include docframe *.py
+recursive-include scripts *.py
 prune build
 prune dist
 prune tests

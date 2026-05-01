@@ -48,6 +48,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     process.add_argument("--max-rows", type=int, default=1_000)
     process.add_argument("--max-chars", type=int, default=20_000)
+    process.add_argument("--max-concurrency", type=int, default=8)
     process.add_argument(
         "--recursive",
         action="store_true",
@@ -64,6 +65,7 @@ async def process_command(args: argparse.Namespace) -> None:
     options = ProcessingOptions(
         max_table_rows=args.max_rows,
         max_chars_per_text_chunk=args.max_chars,
+        max_concurrency=args.max_concurrency,
     )
     framework = DocFrame(options=options)
     paths = collect_paths(Path(args.input), recursive=args.recursive, framework=framework)

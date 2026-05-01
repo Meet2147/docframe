@@ -38,6 +38,30 @@ class DocFrameTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.metadata.document_type, "docx")
         self.assertIn("Word documents", result.text)
 
+    async def test_processes_legacy_doc_as_metadata_only(self) -> None:
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "legacy.doc"
+            path.write_bytes(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1")
+
+            result = await df.DocFrame().process(path)
+
+        self.assertEqual(result.metadata.document_type, "doc")
+        self.assertEqual(result.chunks[0].type, "metadata")
+        self.assertTrue(result.warnings)
+
+    async def test_processes_ooxml_file_with_doc_extension(self) -> None:
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "misnamed.doc"
+            document = DocxDocument()
+            document.add_paragraph("DocFrame recovers misnamed OOXML Word files.")
+            document.save(path)
+
+            result = await df.DocFrame().process(path)
+
+        self.assertEqual(result.metadata.document_type, "doc")
+        self.assertIn("misnamed OOXML", result.text)
+        self.assertTrue(result.warnings)
+
     async def test_processes_xlsx_into_sheet_tables(self) -> None:
         with TemporaryDirectory() as directory:
             path = Path(directory) / "book.xlsx"
@@ -126,6 +150,19 @@ class DocFrameTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(results[0].metadata.document_type, "pdf")
         self.assertEqual(results[0].chunks, [])
         self.assertTrue(results[0].errors)
+
+    async def test_process_many_preserves_input_order_with_bounded_concurrency(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "first.csv"
+            second = root / "second.csv"
+            first.write_text("name\nAda\n", encoding="utf-8")
+            second.write_text("name\nGrace\n", encoding="utf-8")
+
+            framework = df.DocFrame(options=df.ProcessingOptions(max_concurrency=1))
+            results = await framework.process_many([first, second])
+
+        self.assertEqual([result.metadata.filename for result in results], ["first.csv", "second.csv"])
 
 
 if __name__ == "__main__":

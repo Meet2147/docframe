@@ -10,6 +10,7 @@ from .models import DocumentMetadata, DocumentType
 
 EXTENSION_TYPES: dict[str, DocumentType] = {
     ".pdf": "pdf",
+    ".doc": "doc",
     ".docx": "docx",
     ".csv": "csv",
     ".xlsx": "xlsx",
@@ -58,4 +59,3 @@ def split_text(text: str, *, max_chars: int) -> list[str]:
     if len(text) <= max_chars:
         return [text]
     return [text[index : index + max_chars] for index in range(0, len(text), max_chars)]
-

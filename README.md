@@ -3,7 +3,7 @@
 DocFrame is a Python framework for turning messy enterprise documents into
 structured, AI-ready chunks.
 
-It gives developers one API and one CLI for PDFs, DOCX files, CSVs, Excel
+It gives developers one API and one CLI for PDFs, Word files, CSVs, Excel
 workbooks, JPGs, and PNGs.
 
 ```bash
@@ -75,13 +75,19 @@ for result in results:
 ## Supported Formats
 
 - PDF: text and page metadata via `pypdf`
-- DOCX: paragraphs and tables via `python-docx`
+- DOCX: paragraphs and tables via direct OOXML package parsing
+- DOC: OOXML extraction when possible, metadata-only fallback for legacy binary Word files
 - CSV: table chunks via Python's standard `csv` parser
 - XLSX/XLSM: worksheet tables via `openpyxl`
 - JPG/JPEG/PNG: image metadata via `Pillow`
 
 Images currently emit image chunks and metadata. OCR is intentionally a provider
 extension point so teams can choose local OCR, cloud OCR, or multimodal AI.
+
+Many real corpora contain OOXML Word documents with a `.doc` extension. DocFrame
+extracts those with the Word adapter and emits a warning. True legacy binary
+`.doc` files emit metadata and a warning; convert them to `.docx` or register a
+custom adapter when full text extraction is required.
 
 ## Core Concepts
 
@@ -91,7 +97,7 @@ extension point so teams can choose local OCR, cloud OCR, or multimodal AI.
 - `DocumentResult`: normalized output for one document
 - `DocumentChunk`: text, table, image, or metadata unit
 - `Pipeline`: ordered post-processing steps
-- `ProcessingOptions`: runtime limits for large files
+- `ProcessingOptions`: runtime limits and concurrency controls for large files
 
 ## CLI
 
@@ -151,6 +157,15 @@ https://dashboard.render.com/blueprint/new
 Connect the repository and Render will use `render.yaml` from the repo root.
 
 ## Corpus Utilities
+
+Validate a private corpus before a release:
+
+```bash
+python3 scripts/validate_corpus.py test_corpus --out corpus-report.json
+```
+
+The validator exits nonzero if any supported file produces a structured error.
+Use `--allow-errors` for exploratory runs where malformed files are expected.
 
 Collect any supported corpus files by extension:
 

@@ -1,7 +1,7 @@
 [project]
 name = "docframe"
-version = "0.1.0"
-description = "A Python framework for normalizing PDFs, DOCX, CSV, Excel, JPG, and PNG into AI-ready document chunks."
+version = "0.2.0"
+description = "A Python framework for normalizing PDFs, Word files, CSV, Excel, JPG, and PNG into AI-ready document chunks."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -25,14 +25,12 @@ dependencies = [
   "pillow>=10.0.0",
   "pydantic>=2.6.0",
   "pypdf>=4.0.0",
-  "python-docx>=1.1.0",
 ]
 
 [project.optional-dependencies]
 dev = [
   "build>=1.2.0",
-  "fastapi>=0.110.0",
-  "uvicorn[standard]>=0.27.0",
+  "python-docx>=1.1.0",
 ]
 
 [project.scripts]

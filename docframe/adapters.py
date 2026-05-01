@@ -5,10 +5,11 @@ from __future__ import annotations
 import csv
 import logging
 import uuid
+import zipfile
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree
 
-from docx import Document as DocxDocument
 from openpyxl import load_workbook
 from PIL import Image
 from pypdf import PdfReader
@@ -17,13 +18,20 @@ from .models import DocumentChunk, DocumentResult, ProcessingOptions
 from .registry import AdapterRegistry, DocumentAdapter
 from .utils import build_metadata, split_text
 
-logging.getLogger("pypdf").setLevel(logging.ERROR)
+for logger_name in ("pypdf", "pypdf._cmap"):
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.CRITICAL)
+    logger.propagate = False
+    logger.addHandler(logging.NullHandler())
 
 
 def chunk_id() -> str:
     """Return a chunk UUID."""
 
     return str(uuid.uuid4())
+
+
+WORD_NAMESPACE = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 
 
 class CsvAdapter(DocumentAdapter):
@@ -130,35 +138,72 @@ class ExcelAdapter(DocumentAdapter):
         return DocumentResult(document_id=metadata.sha256, metadata=metadata, chunks=chunks)
 
 
-class DocxAdapter(DocumentAdapter):
-    """DOCX adapter that extracts paragraphs and tables."""
+def _word_text(element: ElementTree.Element) -> str:
+    """Extract visible text from a WordprocessingML element."""
 
-    extensions = frozenset({".docx"})
+    parts: list[str] = []
+    for node in element.iter():
+        if node.tag == f"{WORD_NAMESPACE}t" and node.text:
+            parts.append(node.text)
+        elif node.tag == f"{WORD_NAMESPACE}tab":
+            parts.append("\t")
+        elif node.tag == f"{WORD_NAMESPACE}br":
+            parts.append("\n")
+    return "".join(parts)
 
-    def process(self, path: Path, options: ProcessingOptions) -> DocumentResult:
-        metadata = build_metadata(path)
-        document = DocxDocument(path)
-        chunks: list[DocumentChunk] = []
 
-        text = "\n".join(paragraph.text for paragraph in document.paragraphs if paragraph.text.strip())
-        for index, part in enumerate(split_text(text, max_chars=options.max_chars_per_text_chunk)):
-            chunks.append(
-                DocumentChunk(
-                    id=chunk_id(),
-                    type="text",
-                    text=part,
-                    source=metadata.filename,
-                    metadata={"part": index + 1},
-                )
-            )
+def _word_table_rows(table: ElementTree.Element) -> list[list[str]]:
+    """Extract table rows from a WordprocessingML table element."""
 
-        for table_index, table in enumerate(document.tables, start=1):
-            rows = [[cell.text.strip() for cell in row.cells] for row in table.rows]
+    rows: list[list[str]] = []
+    for row in table.findall(f"{WORD_NAMESPACE}tr"):
+        cells: list[str] = []
+        for cell in row.findall(f"{WORD_NAMESPACE}tc"):
+            paragraphs = [
+                _word_text(paragraph).strip()
+                for paragraph in cell.findall(f".//{WORD_NAMESPACE}p")
+            ]
+            cells.append("\n".join(paragraph for paragraph in paragraphs if paragraph))
+        if any(value.strip() for value in cells):
+            rows.append(cells)
+    return rows
+
+
+def _extract_word_chunks(path: Path, metadata_filename: str, options: ProcessingOptions) -> list[DocumentChunk]:
+    """Extract paragraph and table chunks from an OOXML Word package."""
+
+    with zipfile.ZipFile(path) as archive:
+        document_xml = archive.read("word/document.xml")
+
+    root = ElementTree.fromstring(document_xml)
+    body = root.find(f"{WORD_NAMESPACE}body")
+    if body is None:
+        return []
+
+    chunks: list[DocumentChunk] = []
+    paragraphs: list[str] = []
+    table_index = 0
+
+    for child in body:
+        if child.tag == f"{WORD_NAMESPACE}p":
+            text = _word_text(child).strip()
+            if text:
+                paragraphs.append(text)
+        elif child.tag == f"{WORD_NAMESPACE}tbl":
+            rows = _word_table_rows(child)
             if not rows:
                 continue
+            table_index += 1
             headers = rows[0]
             normalized = [
-                {headers[index] or f"column_{index + 1}": value for index, value in enumerate(row)}
+                {
+                    (
+                        headers[index]
+                        if index < len(headers) and headers[index]
+                        else f"column_{index + 1}"
+                    ): value
+                    for index, value in enumerate(row)
+                }
                 for row in rows[1 : options.max_table_rows + 1]
             ]
             chunks.append(
@@ -166,7 +211,7 @@ class DocxAdapter(DocumentAdapter):
                     id=chunk_id(),
                     type="table",
                     rows=normalized,
-                    source=metadata.filename,
+                    source=metadata_filename,
                     metadata={
                         "table_index": table_index,
                         "truncated": max(0, len(rows) - 1) > options.max_table_rows,
@@ -174,7 +219,78 @@ class DocxAdapter(DocumentAdapter):
                 )
             )
 
+    text = "\n".join(paragraphs)
+    for index, part in enumerate(split_text(text, max_chars=options.max_chars_per_text_chunk)):
+        chunks.append(
+            DocumentChunk(
+                id=chunk_id(),
+                type="text",
+                text=part,
+                source=metadata_filename,
+                metadata={"part": index + 1},
+            )
+        )
+
+    return chunks
+
+
+class DocxAdapter(DocumentAdapter):
+    """DOCX adapter that extracts paragraphs and tables."""
+
+    extensions = frozenset({".docx"})
+
+    def process(self, path: Path, options: ProcessingOptions) -> DocumentResult:
+        metadata = build_metadata(path)
+        chunks = _extract_word_chunks(path, metadata.filename, options)
         return DocumentResult(document_id=metadata.sha256, metadata=metadata, chunks=chunks)
+
+
+class LegacyDocAdapter(DocumentAdapter):
+    """`.doc` adapter with OOXML recovery and safe legacy fallback.
+
+    Many public corpora contain OOXML Word packages with a `.doc` extension.
+    DocFrame extracts those directly. True historical binary Word files need
+    platform-specific conversion tools or a dedicated parser, so they fall back
+    to metadata-only output with a clear warning.
+    """
+
+    extensions = frozenset({".doc"})
+
+    def process(self, path: Path, options: ProcessingOptions) -> DocumentResult:
+        metadata = build_metadata(path)
+        try:
+            chunks = _extract_word_chunks(path, metadata.filename, options)
+        except Exception as exc:
+            metadata.extra["word_ooxml_error"] = f"{type(exc).__name__}: {exc}"
+            chunks = [
+                DocumentChunk(
+                    id=chunk_id(),
+                    type="metadata",
+                    source=metadata.filename,
+                    metadata={
+                        "format": "legacy_word_binary",
+                        "extraction": "metadata_only",
+                    },
+                )
+            ]
+            return DocumentResult(
+                document_id=metadata.sha256,
+                metadata=metadata,
+                chunks=chunks,
+                warnings=[
+                    "Legacy .doc text extraction is not enabled. Convert to .docx or register a custom adapter."
+                ],
+            )
+
+        warnings = [
+            "File has a .doc extension but contains an OOXML Word package; processed with the DOCX extractor."
+        ]
+        return DocumentResult(
+            document_id=metadata.sha256,
+            metadata=metadata,
+            chunks=chunks,
+            warnings=warnings,
+        )
 
 
 class PdfAdapter(DocumentAdapter):
@@ -266,6 +382,7 @@ def adapter_registry() -> AdapterRegistry:
 
     registry = AdapterRegistry()
     registry.register(PdfAdapter())
+    registry.register(LegacyDocAdapter())
     registry.register(DocxAdapter())
     registry.register(CsvAdapter())
     registry.register(ExcelAdapter())

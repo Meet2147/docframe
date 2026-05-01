@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
-DocumentType = Literal["pdf", "docx", "csv", "xlsx", "image", "unknown"]
+DocumentType = Literal["pdf", "doc", "docx", "csv", "xlsx", "image", "unknown"]
 ChunkType = Literal["text", "table", "image", "metadata"]
 
 
@@ -17,6 +17,7 @@ class ProcessingOptions(BaseModel):
 
     max_chars_per_text_chunk: int = Field(default=20_000, ge=1)
     max_table_rows: int = Field(default=1_000, ge=1)
+    max_concurrency: int = Field(default=8, ge=1)
     include_binary: bool = False
     include_metadata: bool = True
 
@@ -80,4 +81,3 @@ class DocumentResult(BaseModel):
         """Return the number of table chunks."""
 
         return sum(1 for chunk in self.chunks if chunk.type == "table")
-

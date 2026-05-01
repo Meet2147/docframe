@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 - Corpus Hardening
+
+- Added bounded concurrency for batch processing and the CLI.
+- Added `.doc` support with direct OOXML extraction for misnamed Word packages.
+- Added safe metadata-only fallback for true legacy binary `.doc` files.
+- Replaced Word extraction with direct `word/document.xml` parsing to avoid loading embedded media.
+- Suppressed noisy PDF parser logs while preserving structured per-file errors.
+- Added a private corpus validator release gate.
+- Validated a 1,495-file local corpus with zero processing errors.
+
 ## 0.1.0 - Public Alpha
 
 - Added `docframe process` CLI.

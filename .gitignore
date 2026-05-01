@@ -1,8 +1,11 @@
 __pycache__/
 *.py[cod]
+.DS_Store
 .pytest_cache/
 .ruff_cache/
 .venv/
 *.egg-info/
 dist/
 build/
+test_corpus/
+corpus-report*.json

@@ -9,6 +9,7 @@ from .adapters import (
     DocxAdapter,
     ExcelAdapter,
     ImageAdapter,
+    LegacyDocAdapter,
     PdfAdapter,
     adapter_registry,
 )
@@ -34,6 +35,7 @@ __all__ = [
     "DocxAdapter",
     "ExcelAdapter",
     "ImageAdapter",
+    "LegacyDocAdapter",
     "PdfAdapter",
     "Pipeline",
     "PipelineStep",
@@ -41,4 +43,3 @@ __all__ = [
     "adapter_registry",
     "process_file",
 ]
-
