@@ -149,3 +149,15 @@ https://dashboard.render.com/blueprint/new
 ```
 
 Connect the repository and Render will use `render.yaml` from the repo root.
+
+## Corpus Utilities
+
+Collect PDFs from a deeply nested archive into one flat folder:
+
+```bash
+python3 scripts/collect_pdfs.py "/path/to/archive" "/path/to/all_pdfs" --dry-run --quiet
+python3 scripts/collect_pdfs.py "/path/to/archive" "/path/to/all_pdfs" --quiet
+```
+
+The collector copies by default, avoids overwriting existing files, and gives
+duplicate basenames a stable hash suffix.
