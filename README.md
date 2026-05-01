@@ -152,6 +152,14 @@ Connect the repository and Render will use `render.yaml` from the repo root.
 
 ## Corpus Utilities
 
+Collect any supported corpus files by extension:
+
+```bash
+python3 scripts/collect_files.py "/path/to/archive" "/path/to/all_csv" --ext csv --dry-run --quiet
+python3 scripts/collect_files.py "/path/to/archive" "/path/to/all_csv" --ext csv --quiet
+python3 scripts/collect_files.py "/path/to/archive" "/path/to/all_images" --ext jpg --ext png --quiet
+```
+
 Collect PDFs from a deeply nested archive into one flat folder:
 
 ```bash
