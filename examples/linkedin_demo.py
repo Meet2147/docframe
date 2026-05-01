@@ -7,7 +7,11 @@ Run from the repository root:
 from __future__ import annotations
 
 import asyncio
+import os
 import json
+import shutil
+import sys
+import textwrap
 from pathlib import Path
 
 import docframe as df
@@ -15,6 +19,67 @@ import docframe as df
 
 ROOT = Path(__file__).resolve().parents[1]
 CORPUS = ROOT / "test_corpus"
+WIDTH = min(shutil.get_terminal_size((92, 24)).columns, 96)
+
+
+class Style:
+    """ANSI styling helpers for a nicer terminal recording."""
+
+    enabled = os.environ.get("NO_COLOR") is None and sys.stdout.isatty()
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    BLUE = "\033[38;5;39m"
+    GREEN = "\033[38;5;42m"
+    CYAN = "\033[38;5;51m"
+    YELLOW = "\033[38;5;220m"
+    MAGENTA = "\033[38;5;171m"
+    GRAY = "\033[38;5;245m"
+
+
+def paint(text: str, color: str, *, bold: bool = False) -> str:
+    """Colorize text when ANSI output is enabled."""
+
+    if not Style.enabled:
+        return text
+    prefix = f"{Style.BOLD if bold else ''}{color}"
+    return f"{prefix}{text}{Style.RESET}"
+
+
+def hr(char: str = "-") -> str:
+    """Return a horizontal rule sized for the terminal."""
+
+    return char * WIDTH
+
+
+def section(title: str, subtitle: str | None = None) -> None:
+    """Print a styled section heading."""
+
+    print()
+    print(paint(hr("="), Style.BLUE))
+    print(paint(title, Style.CYAN, bold=True))
+    if subtitle:
+        print(paint(subtitle, Style.GRAY))
+    print(paint(hr("="), Style.BLUE))
+
+
+def label(name: str, value: object, *, color: str = Style.GREEN) -> None:
+    """Print a small label/value line."""
+
+    name_text = f"{name}:".ljust(18)
+    print(f"{paint(name_text, color, bold=True)} {value}")
+
+
+def wrap_block(text: str, *, indent: str = "  ", width: int = WIDTH - 4) -> str:
+    """Wrap a block of text while preserving separate lines."""
+
+    lines: list[str] = []
+    for line in text.splitlines():
+        if not line.strip():
+            lines.append("")
+            continue
+        lines.extend(textwrap.wrap(line, width=width) or [""])
+    return textwrap.indent("\n".join(lines), indent)
 
 
 def pick_demo_files() -> list[Path]:
@@ -42,13 +107,13 @@ def pick_demo_files() -> list[Path]:
 def print_banner() -> None:
     """Print a concise intro for the recording."""
 
-    print()
-    print("============================================================")
-    print("DocFrame: Python document processing for AI-ready workflows")
-    print("============================================================")
-    print("Install: pip install docframe-ai")
-    print("Import:  import docframe as df")
-    print()
+    section(
+        "DocFrame",
+        "Python document processing for LLM-ready workflows",
+    )
+    label("Install", "pip install docframe-ai", color=Style.YELLOW)
+    label("Python import", "import docframe as df", color=Style.YELLOW)
+    label("CLI", "docframe process ./documents --recursive --format llm", color=Style.YELLOW)
 
 
 def preview_text(text: str, *, limit: int = 280) -> str:
@@ -60,30 +125,38 @@ def preview_text(text: str, *, limit: int = 280) -> str:
     return f"{compact[:limit].rstrip()}..."
 
 
+def sample_row(row: dict[str, object], *, limit: int = 4) -> str:
+    """Return a compact sample of a table row."""
+
+    visible = dict(list(row.items())[:limit])
+    suffix = " ..." if len(row) > limit else ""
+    return f"{json.dumps(visible, ensure_ascii=False)}{suffix}"
+
+
 def print_result(result: df.DocumentResult) -> None:
     """Print one processed document in a recording-friendly format."""
 
-    print(f"File:    {result.metadata.filename}")
-    print(f"Type:    {result.metadata.document_type}")
-    print(f"Size:    {result.metadata.size_bytes:,} bytes")
-    print(f"Chunks:  {len(result.chunks)}")
+    print(paint(result.metadata.filename, Style.MAGENTA, bold=True))
+    label("Type", result.metadata.document_type)
+    label("Size", f"{result.metadata.size_bytes:,} bytes")
+    label("Chunks", len(result.chunks))
 
     if result.errors:
-        print(f"Errors:  {result.errors}")
+        label("Errors", result.errors, color=Style.YELLOW)
     if result.warnings:
-        print(f"Warning: {result.warnings[0]}")
+        label("Warning", preview_text(result.warnings[0], limit=100), color=Style.YELLOW)
 
     if result.text:
-        print(f"Preview: {preview_text(result.text)}")
+        label("Preview", preview_text(result.text))
     elif result.table_count:
         table = next(chunk for chunk in result.chunks if chunk.rows)
-        print(f"Rows:    {len(table.rows or [])} extracted from first table chunk")
+        label("Rows", f"{len(table.rows or [])} extracted from first table chunk")
         if table.rows:
-            print(f"Sample:  {table.rows[0]}")
+            label("Sample", sample_row(table.rows[0]))
     else:
-        print("Preview: Metadata extracted; no text/table content emitted.")
+        label("Preview", "Metadata extracted; no text/table content emitted.")
 
-    print("-" * 60)
+    print(paint(hr(), Style.GRAY))
 
 
 def print_llm_payload(results: list[df.DocumentResult]) -> None:
@@ -92,18 +165,27 @@ def print_llm_payload(results: list[df.DocumentResult]) -> None:
     payload = df.to_llm_payload(results, max_chars=650)
     tokens = payload["tokens"]
 
+    section(
+        "LLM-ready output",
+        "SAGER-style source-grounded atomic evidence records",
+    )
+    label("Schema", payload["schema"], color=Style.CYAN)
+    label("Token blocks", payload["token_count"], color=Style.CYAN)
     print()
-    print("LLM-ready output:")
-    print("-" * 60)
-    print(f"Schema: {payload['schema']}")
-    print(f"Token blocks: {payload['token_count']}")
+    print(paint("First token block", Style.MAGENTA, bold=True))
+    print(wrap_block(tokens[0] if tokens else "No text/table token blocks emitted."))
     print()
-    print("First token block:")
-    print(tokens[0] if tokens else "No text/table token blocks emitted.")
-    print()
-    print("Payload shape:")
-    print(json.dumps({"schema": payload["schema"], "tokens": ["..."]}, indent=2))
-    print("-" * 60)
+    print(paint("Payload shape", Style.MAGENTA, bold=True))
+    print(wrap_block(json.dumps({"schema": payload["schema"], "tokens": ["..."]}, indent=2)))
+    print(paint(hr(), Style.GRAY))
+
+
+def print_file_list(paths: list[Path]) -> None:
+    """Print selected files in a compact table."""
+
+    section("Input files", "PDF + Word + CSV flowing through one API")
+    for index, path in enumerate(paths, start=1):
+        print(f"{paint(str(index) + '.', Style.BLUE, bold=True)} {path.relative_to(ROOT)}")
 
 
 async def main() -> None:
@@ -114,10 +196,7 @@ async def main() -> None:
         raise SystemExit("No demo files found. Add files to test_corpus or examples/sample.csv.")
 
     print_banner()
-    print("Processing files:")
-    for path in paths:
-        print(f"  - {path.relative_to(ROOT)}")
-    print()
+    print_file_list(paths)
 
     framework = df.DocFrame(
         options=df.ProcessingOptions(
@@ -128,17 +207,16 @@ async def main() -> None:
     )
     results = await framework.process_many(paths, continue_on_error=True)
 
-    print("Normalized output:")
-    print("-" * 60)
+    section("Normalized document output", "Rich structured records from messy files")
     for result in results:
         print_result(result)
 
     print_llm_payload(results)
 
-    print()
-    print("One API. One CLI. Messy documents into LLM-ready token blocks.")
-    print("CLI: docframe process ./documents --recursive --format llm")
-    print("GitHub: https://github.com/Meet2147/docframe")
+    section("Ready for developers")
+    label("One API", "messy documents into LLM-ready token blocks", color=Style.CYAN)
+    label("CLI", "docframe process ./documents --recursive --format llm", color=Style.CYAN)
+    label("GitHub", "https://github.com/Meet2147/docframe", color=Style.CYAN)
     print()
 
 
