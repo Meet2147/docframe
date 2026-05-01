@@ -3,6 +3,7 @@
 ## 0.2.0 - Corpus Hardening
 
 - Renamed the PyPI distribution to `docframe-ai` while keeping the `docframe` import.
+- Added LLM-ready `tokens`, `llm`, and `prompt` output formats.
 - Added bounded concurrency for batch processing and the CLI.
 - Added `.doc` support with direct OOXML extraction for misnamed Word packages.
 - Added safe metadata-only fallback for true legacy binary `.doc` files.

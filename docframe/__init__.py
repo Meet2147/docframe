@@ -14,6 +14,7 @@ from .adapters import (
     adapter_registry,
 )
 from .core import DocFrame, Pipeline, PipelineStep, process_file
+from .llm import to_llm_payload, to_llm_prompt, to_llm_tokens
 from .models import (
     DocumentChunk,
     DocumentMetadata,
@@ -42,4 +43,7 @@ __all__ = [
     "ProcessingOptions",
     "adapter_registry",
     "process_file",
+    "to_llm_payload",
+    "to_llm_prompt",
+    "to_llm_tokens",
 ]

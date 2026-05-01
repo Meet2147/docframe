@@ -83,6 +83,30 @@ for result in results:
         print(result.metadata.filename, result.errors)
 ```
 
+LLM-ready token blocks:
+
+```python
+import docframe as df
+
+framework = df.DocFrame()
+result = framework.process_sync("report.pdf")
+
+tokens = df.to_llm_tokens(result)
+prompt = df.to_llm_prompt(result)
+```
+
+From the CLI:
+
+```bash
+docframe process report.pdf --format tokens
+docframe process ./documents --recursive --format llm --out llm_payload.json
+docframe process report.pdf --format prompt --out prompt.txt
+```
+
+`tokens` returns a JSON list of source-grounded text blocks. `llm` returns a
+compact `docframe.sager.tokens.v1` payload. `prompt` returns plain text ready to
+paste or pass directly into an LLM call.
+
 ## Supported Formats
 
 - PDF: text and page metadata via `pypdf`
@@ -115,6 +139,9 @@ custom adapter when full text extraction is required.
 ```bash
 docframe process FILE_OR_DIRECTORY
 docframe process FILE_OR_DIRECTORY --format markdown
+docframe process FILE_OR_DIRECTORY --format tokens
+docframe process FILE_OR_DIRECTORY --format llm
+docframe process FILE_OR_DIRECTORY --format prompt
 docframe process FILE_OR_DIRECTORY --recursive --out normalized.json
 docframe formats
 ```

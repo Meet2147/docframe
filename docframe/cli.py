@@ -7,6 +7,7 @@ import asyncio
 from pathlib import Path
 
 from .core import DocFrame
+from .llm import DEFAULT_TOKEN_CHARS
 from .models import ProcessingOptions
 from .writers import OutputFormat, render_results
 
@@ -42,13 +43,19 @@ def build_parser() -> argparse.ArgumentParser:
     process.add_argument("--out", help="Write output to a file instead of stdout.")
     process.add_argument(
         "--format",
-        choices=("json", "text", "markdown"),
+        choices=("json", "text", "markdown", "tokens", "llm", "prompt"),
         default="json",
         help="Output format.",
     )
     process.add_argument("--max-rows", type=int, default=1_000)
     process.add_argument("--max-chars", type=int, default=20_000)
     process.add_argument("--max-concurrency", type=int, default=8)
+    process.add_argument(
+        "--token-chars",
+        type=int,
+        default=DEFAULT_TOKEN_CHARS,
+        help="Maximum characters per LLM token block for tokens, llm, and prompt output.",
+    )
     process.add_argument(
         "--recursive",
         action="store_true",
@@ -70,7 +77,7 @@ async def process_command(args: argparse.Namespace) -> None:
     framework = DocFrame(options=options)
     paths = collect_paths(Path(args.input), recursive=args.recursive, framework=framework)
     results = await framework.process_many(paths, continue_on_error=True)
-    rendered = render_results(results, output_format=args.format)
+    rendered = render_results(results, output_format=args.format, token_chars=args.token_chars)
 
     if args.out:
         Path(args.out).write_text(rendered, encoding="utf-8")

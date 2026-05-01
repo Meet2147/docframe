@@ -45,7 +45,7 @@ class CsvAdapter(DocumentAdapter):
             sample = handle.read(4096)
             handle.seek(0)
             try:
-                dialect = csv.Sniffer().sniff(sample) if sample else csv.excel
+                dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|") if sample else csv.excel
             except csv.Error:
                 dialect = csv.excel
             try:

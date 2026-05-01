@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 
 import docframe as df
 from docframe.cli import collect_paths
+from docframe.writers import render_results
 from docx import Document as DocxDocument
 from openpyxl import Workbook
 from PIL import Image
@@ -163,6 +164,32 @@ class DocFrameTests(unittest.IsolatedAsyncioTestCase):
             results = await framework.process_many([first, second])
 
         self.assertEqual([result.metadata.filename for result in results], ["first.csv", "second.csv"])
+
+    async def test_result_can_be_projected_to_llm_tokens(self) -> None:
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "users.csv"
+            path.write_text("name,email\nAda,ada@example.internal\n", encoding="utf-8")
+
+            result = await df.DocFrame().process(path)
+            tokens = df.to_llm_tokens(result)
+
+        self.assertEqual(len(tokens), 1)
+        self.assertIn("source=users.csv", tokens[0])
+        self.assertIn("name: Ada", tokens[0])
+
+    async def test_writers_render_tokens_and_llm_payload(self) -> None:
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "notes.csv"
+            path.write_text("topic\nSAGER tokens\n", encoding="utf-8")
+
+            result = await df.DocFrame().process(path)
+            token_payload = json.loads(render_results([result], output_format="tokens"))
+            llm_payload = json.loads(render_results([result], output_format="llm"))
+
+        self.assertIsInstance(token_payload, list)
+        self.assertIn("SAGER tokens", token_payload[0])
+        self.assertEqual(llm_payload["schema"], "docframe.sager.tokens.v1")
+        self.assertEqual(llm_payload["token_count"], 1)
 
 
 if __name__ == "__main__":

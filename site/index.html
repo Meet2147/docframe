@@ -121,11 +121,16 @@ ok wrote normalized.json</code></pre>
           <pre><code>docframe process ./inbox --recursive --out normalized.json</code></pre>
         </div>
         <div class="code-panel">
+          <h3>LLM tokens</h3>
+          <pre><code>docframe process report.pdf --format tokens</code></pre>
+        </div>
+        <div class="code-panel">
           <h3>Use Python</h3>
           <pre><code>import docframe as df
 
 framework = df.DocFrame()
-result = framework.process_sync("report.xlsx")</code></pre>
+result = framework.process_sync("report.xlsx")
+tokens = df.to_llm_tokens(result)</code></pre>
         </div>
       </div>
     </section>

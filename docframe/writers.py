@@ -5,12 +5,18 @@ from __future__ import annotations
 import json
 from typing import Literal
 
+from .llm import DEFAULT_TOKEN_CHARS, dumps_llm_payload, to_llm_payload, to_llm_prompt, to_llm_tokens
 from .models import DocumentResult
 
-OutputFormat = Literal["json", "text", "markdown"]
+OutputFormat = Literal["json", "text", "markdown", "tokens", "llm", "prompt"]
 
 
-def render_result(result: DocumentResult, *, output_format: OutputFormat) -> str:
+def render_result(
+    result: DocumentResult,
+    *,
+    output_format: OutputFormat,
+    token_chars: int = DEFAULT_TOKEN_CHARS,
+) -> str:
     """Render a single result."""
 
     if output_format == "json":
@@ -19,17 +25,41 @@ def render_result(result: DocumentResult, *, output_format: OutputFormat) -> str
         return result.text
     if output_format == "markdown":
         return render_markdown(result)
+    if output_format == "tokens":
+        return json.dumps(to_llm_tokens(result, max_chars=token_chars), indent=2, ensure_ascii=False)
+    if output_format == "llm":
+        return dumps_llm_payload(to_llm_payload(result, max_chars=token_chars))
+    if output_format == "prompt":
+        return to_llm_prompt(result, max_chars=token_chars)
     raise ValueError(f"Unsupported output format: {output_format}")
 
 
-def render_results(results: list[DocumentResult], *, output_format: OutputFormat) -> str:
+def render_results(
+    results: list[DocumentResult],
+    *,
+    output_format: OutputFormat,
+    token_chars: int = DEFAULT_TOKEN_CHARS,
+) -> str:
     """Render one or more results."""
 
+    if output_format == "tokens":
+        return json.dumps(
+            to_llm_tokens(results, max_chars=token_chars),
+            indent=2,
+            ensure_ascii=False,
+        )
+    if output_format == "llm":
+        return dumps_llm_payload(to_llm_payload(results, max_chars=token_chars))
+    if output_format == "prompt":
+        return to_llm_prompt(results, max_chars=token_chars)
     if len(results) == 1:
-        return render_result(results[0], output_format=output_format)
+        return render_result(results[0], output_format=output_format, token_chars=token_chars)
     if output_format == "json":
         return json.dumps([result.model_dump(mode="json") for result in results], indent=2)
-    return "\n\n---\n\n".join(render_result(result, output_format=output_format) for result in results)
+    return "\n\n---\n\n".join(
+        render_result(result, output_format=output_format, token_chars=token_chars)
+        for result in results
+    )
 
 
 def render_markdown(result: DocumentResult) -> str:
@@ -58,4 +88,3 @@ def render_markdown(result: DocumentResult) -> str:
             lines.extend(["## image", "", json.dumps(chunk.metadata, indent=2), ""])
 
     return "\n".join(lines).strip() + "\n"
-
