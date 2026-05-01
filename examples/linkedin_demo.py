@@ -116,13 +116,19 @@ def print_banner() -> None:
     label("CLI", "docframe process ./documents --recursive --format llm", color=Style.YELLOW)
 
 
-def preview_text(text: str, *, limit: int = 280) -> str:
-    """Return a compact one-line text preview."""
+def preview_text(text: str, *, limit: int = 720) -> str:
+    """Return a generous text preview."""
 
     compact = " ".join(text.split())
     if len(compact) <= limit:
         return compact
     return f"{compact[:limit].rstrip()}..."
+
+
+def preview_block(text: str, *, limit: int = 720) -> str:
+    """Return a wrapped preview block for screen recording."""
+
+    return wrap_block(preview_text(text, limit=limit))
 
 
 def sample_row(row: dict[str, object], *, limit: int = 4) -> str:
@@ -147,7 +153,8 @@ def print_result(result: df.DocumentResult) -> None:
         label("Warning", preview_text(result.warnings[0], limit=100), color=Style.YELLOW)
 
     if result.text:
-        label("Preview", preview_text(result.text))
+        label("Preview", "")
+        print(preview_block(result.text))
     elif result.table_count:
         table = next(chunk for chunk in result.chunks if chunk.rows)
         label("Rows", f"{len(table.rows or [])} extracted from first table chunk")
